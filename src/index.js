@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
 
     socket.on('newUser', user => {
         socket.broadcast.emit('userConnected', user);
-        socket.emit('messsageLogs', messages)
+        socket.emit('messageLogs', messages)
     })
 
     socket.on('message', data => {
