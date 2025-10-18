@@ -1,0 +1,48 @@
+<div id="auth-page">
+  <div class="auth-card">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login">Login</button>
+      <button class="tab-btn" id="tab-register">Register</button>
+    </div>
+    <div id="login-form">
+      <input type="text" id="login-username" placeholder="Usuario" />
+      <input type="password" id="login-password" placeholder="Contraseña" />
+      <button id="login-btn">Ingresar</button>
+    </div>
+    <div id="register-form" style="display:none;">
+      <input type="text" id="register-username" placeholder="Usuario" />
+      <input type="password" id="register-password" placeholder="Contraseña" />
+      <div class="row-2">
+        <input type="text" id="register-firstName" placeholder="Nombre" />
+        <input type="text" id="register-lastName" placeholder="Apellido" />
+      </div>
+      <button id="register-btn">Crear cuenta</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/index.js"></script>
+<script>
+  // Tab buttons toggle login/register
+  (function(){
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    if(tabLogin && tabRegister && loginForm && registerForm){
+      tabLogin.addEventListener('click', function(){
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        loginForm.style.display = '';
+        registerForm.style.display = 'none';
+      });
+      tabRegister.addEventListener('click', function(){
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        registerForm.style.display = '';
+        loginForm.style.display = 'none';
+      });
+    }
+  })();
+  </script>

@@ -1,0 +1,67 @@
+<div id="chat-container" style="display: flex;">
+  <div id="sidebar">
+    <div id="user-profile">
+      <div class="profile-row">
+        <img id="profile-avatar" class="avatar" src="" alt="avatar" onerror="this.style.display='none'" />
+        <div>
+          <h3 id="profile-username"></h3>
+          <p><span id="profile-firstName"></span> <span id="profile-lastName"></span></p>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button id="edit-profile-btn" class="icon-btn" title="Editar perfil" aria-label="Editar perfil">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.232 5.232l3.536 3.536M4 20h4l10.5-10.5a2.5 2.5 0 10-3.536-3.536L4 16.464V20z" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button id="logout-btn" class="btn-secondary" style="margin-left:auto;">Cerrar sesión</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-my">Mis</button>
+      <button class="tab-btn" id="tab-discover">Descubrir</button>
+    </div>
+    <div class="tab-content" id="tab-my-content">
+      <div id="channels">
+        <div class="section-header">
+          <h3>Mis canales</h3>
+          <button id="new-channel-btn">Nuevo canal</button>
+        </div>
+        <ul id="my-channel-list"></ul>
+      </div>
+      <div id="users">
+        <h3>Mis chats</h3>
+        <ul id="my-user-list"></ul>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-discover-content" style="display:none;">
+      <div>
+        <h3>Descubrir canales</h3>
+        <ul id="discover-channel-list"></ul>
+      </div>
+      <div>
+        <h3>Descubrir usuarios</h3>
+        <ul id="discover-user-list"></ul>
+      </div>
+    </div>
+  </div>
+  <div id="main-chat">
+    <div id="chat-header">
+      <div id="chat-title"></div>
+      <div id="chat-subtitle"></div>
+    </div>
+    <div id="messages"></div>
+    <div id="input-area">
+      <input type="text" id="message-input" placeholder="Escribe un mensaje...">
+      <input type="file" id="file-input" style="display:none;">
+      <span id="file-name" class="file-name" style="display:none;"></span>
+      <button id="upload-btn" class="icon-btn" title="Subir archivo" aria-label="Subir archivo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="send-btn" class="icon-btn primary" title="Enviar" aria-label="Enviar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12l14-7-4 14-4-5-6-2z" fill="#fff"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/index.js"></script>

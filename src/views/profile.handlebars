@@ -1,0 +1,52 @@
+<div class="profile-page">
+  <h2>Editar perfil</h2>
+  <form action="/profile" method="POST" enctype="multipart/form-data" class="profile-form">
+    <input type="hidden" name="userId" value="{{user._id}}" />
+    <div class="row">
+      <label>Username</label>
+      <input type="text" value="{{user.username}}" disabled />
+    </div>
+    <div class="row">
+      <label>Nombre</label>
+      <input type="text" name="firstName" value="{{user.profile.firstName}}" />
+    </div>
+    <div class="row">
+      <label>Apellido</label>
+      <input type="text" name="lastName" value="{{user.profile.lastName}}" />
+    </div>
+    <div class="row">
+      <label>Nueva contraseña</label>
+      <input type="password" name="password" placeholder="Opcional" />
+    </div>
+    <div class="row">
+      <label>Avatar</label>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="{{user.profile.avatar}}" class="avatar" alt="avatar" />
+        <input id="avatar-file" type="file" name="avatar" style="display:none;" />
+        <button id="avatar-upload-btn" class="icon-btn" type="button" title="Subir avatar" aria-label="Subir avatar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16v2a 2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span id="avatar-file-name" class="file-name" style="display:none;"></span>
+      </div>
+    </div>
+    <div class="actions">
+      <button type="submit">Guardar cambios</button>
+      <a href="/" class="btn-secondary">Cancelar</a>
+    </div>
+  </form>
+  <script>
+    (function(){
+      const btn = document.getElementById('avatar-upload-btn');
+      const input = document.getElementById('avatar-file');
+      const label = document.getElementById('avatar-file-name');
+      if(btn && input){
+        btn.addEventListener('click', ()=> input.click());
+        input.addEventListener('change', ()=>{
+          const f = input.files[0];
+          if(f && label){ label.textContent = f.name; label.style.display = 'inline-block'; }
+          else if(label){ label.textContent = ''; label.style.display = 'none'; }
+        });
+      }
+    })();
+  </script>
+</div>

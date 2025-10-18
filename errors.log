@@ -1,0 +1,1 @@
+{"code":11000,"errorLabelSet":{},"errorResponse":{"code":11000,"errmsg":"E11000 duplicate key error collection: ChatSockets.channels index: name_1 dup key: { name: \"Chat8\" }","index":0,"keyPattern":{"name":1},"keyValue":{"name":"Chat8"}},"index":0,"keyPattern":{"name":1},"keyValue":{"name":"Chat8"},"level":"error"}
