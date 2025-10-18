@@ -46,6 +46,10 @@ let privateChatUser = null;
 let myChannelIds = new Set();
 let myContactIds = new Set();
 
+// Notification sound
+const notificationSound = new Audio('/sounds/notification.mp3');
+notificationSound.volume = 0.5;
+
 // Page detection
 const isChatPage = !!document.getElementById('chat-container');
 const isLoginPage = !!document.getElementById('auth-page');
@@ -353,7 +357,13 @@ if (editProfileBtn) {
 
 // Render messages
 socket.on('messageLogs', (msgs) => {
-    msgs.forEach(msg => renderMessage(msg));
+    msgs.forEach(msg => {
+        renderMessage(msg);
+        // Play notification for new messages not from current user
+        if (currentUser && String(msg.sender?._id || msg.sender) !== String(currentUser._id)) {
+            notificationSound.play().catch(() => {});
+        }
+    });
     messages.scrollTop = messages.scrollHeight;
 });
 

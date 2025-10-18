@@ -33,7 +33,11 @@ const socketio = (server) => {
         // Join channel by ID to use as Socket.IO room
         socket.on('joinChannel', async (channelId) => {
             socket.join(String(channelId));
-            const messages = await Message.find({ channel: channelId }).populate('sender');
+            const messages = await Message.find({ channel: channelId })
+                .populate('sender', 'username profile.avatar')
+                .sort({ timestamp: 1 })
+                .limit(100)
+                .lean();
             socket.emit('messageLogs', messages);
         });
 
@@ -41,7 +45,7 @@ const socketio = (server) => {
             try {
                 const message = new Message(data);
                 await message.save();
-                const populatedMessage = await Message.findById(message._id).populate('sender');
+                const populatedMessage = await Message.findById(message._id).populate('sender', 'username profile.avatar').lean();
                 if (data.channel) {
                     io.to(String(data.channel)).emit('messageLogs', [populatedMessage]);
                 } else if (data.receiver) {

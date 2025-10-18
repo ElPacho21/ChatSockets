@@ -10,9 +10,12 @@ const router = Router();
 router.get('/channel/:channelId', async (req, res) => {
     try {
         const { channelId } = req.params;
+        const limit = parseInt(req.query.limit) || 100;
         const messages = await Message.find({ channel: channelId })
-            .populate('sender')
-            .sort({ timestamp: 1 });
+            .populate('sender', 'username profile.avatar')
+            .sort({ timestamp: 1 })
+            .limit(limit)
+            .lean();
         res.json(messages);
     } catch (e) {
         res.status(500).json({ error: 'Failed to fetch channel messages' });
@@ -24,12 +27,17 @@ router.get('/private', async (req, res) => {
     try {
         const { me, user } = req.query;
         if (!me || !user) return res.status(400).json({ error: 'me and user are required' });
+        const limit = parseInt(req.query.limit) || 100;
         const messages = await Message.find({
             $or: [
                 { sender: me, receiver: user },
                 { sender: user, receiver: me },
             ]
-        }).populate('sender').sort({ timestamp: 1 });
+        })
+        .populate('sender', 'username profile.avatar')
+        .sort({ timestamp: 1 })
+        .limit(limit)
+        .lean();
         res.json(messages);
     } catch (e) {
         res.status(500).json({ error: 'Failed to fetch private messages' });
@@ -52,7 +60,7 @@ router.get('/contacts', async (req, res) => {
             { $group: { _id: '$other' } }
         ]);
         const ids = agg.map(x => x._id);
-        const users = await require('../models/user.model').find({ _id: { $in: ids } }).select('-password');
+        const users = await require('../models/user.model').find({ _id: { $in: ids } }).select('-password').lean();
         res.json(users);
     } catch (e) {
         res.status(500).json({ error: 'Failed to fetch contacts' });
@@ -81,7 +89,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
         const message = new Message(messageData);
         await message.save();
-        const populatedMessage = await Message.findById(message._id).populate('sender');
+        const populatedMessage = await Message.findById(message._id).populate('sender', 'username profile.avatar').lean();
 
         const io = getIo();
         if (channel) {
