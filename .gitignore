@@ -1,1 +1,85 @@
-node_modules
+# ==============================
+# 📦 Node.js / Express
+# ==============================
+
+# Dependencias
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Procesos de PM2 / nodemon
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cobertura de tests
+coverage/
+.nyc_output/
+
+# Archivos de compilación / caché
+dist/
+build/
+.tmp/
+temp/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# ==============================
+# ⚙️ Configuración y entorno
+# ==============================
+
+# Variables de entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==============================
+# 🗄️ MongoDB
+# ==============================
+
+# Dumps o backups de mongo
+dump/
+*.bson
+*.json
+*.csv
+
+# ==============================
+# 🧱 Handlebars (views)
+# ==============================
+
+# Si generás vistas compiladas o preprocesadas (poco común)
+*.hbs.js
+*.handlebars.js
+
+# ==============================
+# 🧪 Tests (opcional)
+# ==============================
+/test-results/
+/coverage/
+
+# ==============================
+# 💻 IDEs y editores
+# ==============================
+
+# Visual Studio Code
+.vscode/
+
+# JetBrains / WebStorm
+.idea/
+
+# Mac / Windows / Linux
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

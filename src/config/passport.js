@@ -1,4 +1,5 @@
 const passport = require('passport')
+const dotenv = require('dotenv').config();
 
 // Strategies
 const local = require('passport-local')
@@ -11,7 +12,7 @@ const cookieExtractor = require('../utils/cookieExtractor')
 const LocalStrategy = local.Strategy
 const JWTStrategy = jwt.Strategy
 
-const privateKey = "codeSecret";
+const privateKey = process.env.JWT_SECRET;
 
 const initializePassport = () => {
     passport.use('register',

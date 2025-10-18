@@ -3,15 +3,16 @@ const handlebars = require('express-handlebars');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
-const authMiddleware = require('./middleware/auth');
+const dotenv = require('dotenv').config();
 
+const authMiddleware = require('./middleware/auth');
 const router = require('./routes/index');
 const connectDB = require('./db/database');
 const { logger, addLogger } = require('./utils/logger');
 const { socketio } = require('./socketio/socket');
 const initializePassport = require('./config/passport');
 
-const port = 8080;
+const port = process.env.PORT;
 
 // Express App
 const app = express();

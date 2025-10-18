@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const { logger } = require('../utils/logger');
+const dotenv = require('dotenv').config();
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb+srv://admin:Pachocrack21@clusterback.7s3qx.mongodb.net/ChatSockets?retryWrites=true&w=majority&appName=ClusterBack');
+        await mongoose.connect(`${process.env.DB_URI}`);
         logger.info('Base de datos conectada');
     } catch (error) {
         logger.error('Error al conectar a la base de datos', error);
