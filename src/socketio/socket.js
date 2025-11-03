@@ -12,7 +12,6 @@ const socketio = (server) => {
     io.on('connection', (socket) => {
         logger.info(`Client ID: ${socket.id}`);
 
-        // Identify user after HTTP login (client emits with user object)
         socket.on('identify', (user) => {
             if (user && user._id) {
                 registry.setUser(user._id, socket.id, user);
@@ -30,15 +29,8 @@ const socketio = (server) => {
             }
         });
 
-        // Join channel by ID to use as Socket.IO room
-        socket.on('joinChannel', async (channelId) => {
+        socket.on('joinChannel', (channelId) => {
             socket.join(String(channelId));
-            const messages = await Message.find({ channel: channelId })
-                .populate('sender', 'username profile.avatar')
-                .sort({ timestamp: 1 })
-                .limit(100)
-                .lean();
-            socket.emit('messageLogs', messages);
         });
 
         socket.on('message', async (data) => {
@@ -53,7 +45,7 @@ const socketio = (server) => {
                     if (receiverSocketId) {
                         io.to(receiverSocketId).emit('messageLogs', [populatedMessage]);
                     }
-                    // Also send to sender
+                    
                     io.to(socket.id).emit('messageLogs', [populatedMessage]);
                 }
             } catch (error) {

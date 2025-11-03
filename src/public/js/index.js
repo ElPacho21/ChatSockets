@@ -355,15 +355,40 @@ if (editProfileBtn) {
 
 // No upload avatar button in chat view (moved to profile)
 
-// Render messages
-socket.on('messageLogs', (msgs) => {
+// Helpers to match messages to current context
+function idStr(v){ return String(v?._id || v || ''); }
+function isPrivateMessage(msg){ return !!msg.receiver && !msg.channel; }
+function isForCurrentContext(msg){
+    if (currentChannel) return idStr(msg.channel) === idStr(currentChannel);
+    if (privateChatUser) {
+        const s = idStr(msg.sender);
+        const r = idStr(msg.receiver);
+        return (s === idStr(privateChatUser) && r === idStr(currentUser._id)) ||
+               (s === idStr(currentUser._id) && r === idStr(privateChatUser));
+    }
+    return false;
+}
+
+// Render messages from socket (only for current context)
+socket.on('messageLogs', async (msgs) => {
+    let needsContactsRefresh = false;
     msgs.forEach(msg => {
-        renderMessage(msg);
-        // Play notification for new messages not from current user
-        if (currentUser && String(msg.sender?._id || msg.sender) !== String(currentUser._id)) {
-            notificationSound.play().catch(() => {});
+        // If it's a private message involving me, mark to refresh contacts
+        if (isPrivateMessage(msg)) {
+            const involvesMe = idStr(msg.sender) === idStr(currentUser?._id) || idStr(msg.receiver) === idStr(currentUser?._id);
+            if (involvesMe) needsContactsRefresh = true;
+        }
+        // Only render if message belongs to the active context
+        if (isForCurrentContext(msg)) {
+            renderMessage(msg);
+            if (currentUser && idStr(msg.sender) !== idStr(currentUser._id)) {
+                notificationSound.play().catch(() => {});
+            }
         }
     });
+    if (needsContactsRefresh) {
+        try { await fetchContacts(); await fetchUsers(); } catch(_){}
+    }
     messages.scrollTop = messages.scrollHeight;
 });
 
