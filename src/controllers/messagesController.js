@@ -97,7 +97,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         } else if (receiver) {
             const receiverSocketId = registry.getSocketId(receiver);
             if (receiverSocketId) io.to(receiverSocketId).emit('messageLogs', [populatedMessage]);
-            // echo to sender as well
+            
             const senderSocketId = registry.getSocketId(senderId);
             if (senderSocketId) io.to(senderSocketId).emit('messageLogs', [populatedMessage]);
         }

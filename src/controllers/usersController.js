@@ -5,11 +5,10 @@ const { logger } = require('../utils/logger');
 
 const router = Router();
 
-// Register user via HTTP
 router.post('/register', async (req, res) => {
     try {
         const { username, password, firstName, lastName } = req.body;
-        // Build profile in schema shape
+        
         const data = {
             username,
             password,
@@ -27,15 +26,14 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// Login user via HTTP (sets session cookie)
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username, password });
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-        // Optionally include channels user belongs to
+        
         const populated = await User.findById(user._id).populate('channels');
-        // issue token cookie
+        
         const { sign } = require('../utils/jwt');
         const token = sign({ id: populated._id });
         res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7*24*60*60*1000 });
@@ -46,7 +44,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Optional: list users (all) for admin/testing
 router.get('/', async (req, res) => {
     const users = await User.find().select('-password');
     res.json(users);

@@ -12,7 +12,6 @@ const messageSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now, index: true }
 });
 
-// Compound indexes for common queries
 messageSchema.index({ channel: 1, timestamp: 1 });
 messageSchema.index({ sender: 1, receiver: 1, timestamp: 1 });
 

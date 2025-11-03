@@ -4,7 +4,6 @@ const User = require('../models/user.model');
 
 const router = Router();
 
-// GET /channels -> list all channels
 router.get('/', async (req, res) => {
     try {
         const channels = await Channel.find();
@@ -14,7 +13,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /channels/join/:channelId -> user joins a channel (body: { userId })
 router.post('/join/:channelId', async (req, res) => {
     const { channelId } = req.params;
     const { userId } = req.body;

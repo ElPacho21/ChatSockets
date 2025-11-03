@@ -1,6 +1,5 @@
 const socket = io();
 
-// Elements
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const showRegister = document.getElementById('show-register');
@@ -45,16 +44,16 @@ let currentChannel = null;
 let privateChatUser = null;
 let myChannelIds = new Set();
 let myContactIds = new Set();
+let lastRenderedDateKey = null;
+let floatingDateHeader = null;
 
 // Notification sound
 const notificationSound = new Audio('/sounds/notification.mp3');
 notificationSound.volume = 0.5;
 
-// Page detection
 const isChatPage = !!document.getElementById('chat-container');
 const isLoginPage = !!document.getElementById('auth-page');
 
-// Session restore only on chat page
 if (isChatPage) (async function tryRestoreSession(){
     try {
         const res = await fetch('/auth/me');
@@ -94,7 +93,6 @@ if (showRegister && showLogin) {
     });
 }
 
-// Register via HTTP
 if (registerBtn) {
     registerBtn.addEventListener('click', async () => {
         try {
@@ -121,7 +119,6 @@ if (registerBtn) {
     });
 }
 
-// Login via HTTP then redirect to chat
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
         try {
@@ -145,7 +142,6 @@ if (loginBtn) {
 }
 
 async function loadInitialData() {
-    // Ensure contacts first to filter discover users
     await fetchContacts();
     await Promise.all([fetchChannels(), fetchUsers()]);
 }
@@ -154,7 +150,7 @@ async function fetchChannels() {
     try {
         const res = await fetch('/channels');
         const data = await res.json();
-        // Determine my channels from currentUser.channels
+        
         myChannelIds = new Set((currentUser.channels || []).map(c => c._id || c));
         myChannelList.innerHTML = '';
         discoverChannelList.innerHTML = '';
@@ -186,11 +182,11 @@ async function fetchUsers() {
 }
 
 socket.on('userList', (users) => {
-    // Optionally highlight online users; for now no change in lists structure
+    
 });
 
 socket.on('channelCreated', (channel) => {
-    // If I'm the owner, auto-join membership
+    
     if (String(channel.owner) === String(currentUser._id)) {
         (async () => { await joinChannelMembership(channel._id); await fetchChannels(); })();
     } else {
@@ -217,7 +213,7 @@ async function fetchContacts() {
 function openPrivateChat(user, li) {
     currentChannel = null;
     privateChatUser = user._id;
-    messages.innerHTML = '';
+    resetMessagesView();
     loadPrivateHistory(privateChatUser);
     document.querySelectorAll('#my-channel-list li, #discover-channel-list li, #my-user-list li, #discover-user-list li').forEach(item => item.classList.remove('active'));
     li.classList.add('active');
@@ -251,7 +247,7 @@ async function joinChannelMembership(channelId) {
 function openChannel(channel, li) {
     currentChannel = channel._id;
     privateChatUser = null;
-    messages.innerHTML = '';
+    resetMessagesView();
     loadChannelHistory(currentChannel);
     socket.emit('joinChannel', currentChannel);
     document.querySelectorAll('#my-channel-list li, #discover-channel-list li, #my-user-list li, #discover-user-list li').forEach(item => item.classList.remove('active'));
@@ -261,7 +257,6 @@ function openChannel(channel, li) {
     updateChatHeader({ type: 'channel', name: channel.name, description: channel.description || '' });
 }
 
-// Create channel with modal
 if (newChannelBtn) {
     newChannelBtn.addEventListener('click', async () => {
         const { value: formValues } = await Swal.fire({
@@ -288,7 +283,6 @@ if (newChannelBtn) {
     });
 }
 
-// Send message and/or file
 if (sendBtn) {
     sendBtn.addEventListener('click', () => {
         const content = messageInput.value.trim();
@@ -317,7 +311,6 @@ if (sendBtn) {
     });
 }
 
-// Enter to send
 messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -325,12 +318,10 @@ messageInput.addEventListener('keydown', (e) => {
     }
 });
 
-// Upload button triggers hidden input
 if (uploadBtn) {
     uploadBtn.addEventListener('click', () => fileInput.click());
 }
 
-// Show selected file name
 if (fileInput) {
     fileInput.addEventListener('change', () => {
         const f = fileInput.files[0];
@@ -353,9 +344,6 @@ if (editProfileBtn) {
     });
 }
 
-// No upload avatar button in chat view (moved to profile)
-
-// Helpers to match messages to current context
 function idStr(v){ return String(v?._id || v || ''); }
 function isPrivateMessage(msg){ return !!msg.receiver && !msg.channel; }
 function isForCurrentContext(msg){
@@ -367,6 +355,97 @@ function isForCurrentContext(msg){
                (s === idStr(currentUser._id) && r === idStr(privateChatUser));
     }
     return false;
+}
+
+// Date helpers and sticky dividers
+function toLocalDate(d){
+    const date = new Date(d);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+function getDateKey(d){
+    const dt = toLocalDate(d);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth()+1).padStart(2,'0');
+    const day = String(dt.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+}
+function formatDayLabel(d){
+    const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const today = toLocalDate(new Date());
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate()-1);
+    const dt = toLocalDate(d);
+    if (dt.getTime() === today.getTime()) return 'Hoy';
+    if (dt.getTime() === yesterday.getTime()) return 'Ayer';
+    return `${dt.getDate()} de ${months[dt.getMonth()]} de ${dt.getFullYear()}`;
+}
+function insertDateDividerIfNeeded(date){
+    const key = getDateKey(date);
+    if (key === lastRenderedDateKey) return;
+    lastRenderedDateKey = key;
+    const div = document.createElement('div');
+    div.className = 'date-divider';
+    const span = document.createElement('span');
+    const label = formatDayLabel(date);
+    span.textContent = label;
+    div.dataset.dateKey = key;
+    div.dataset.dateLabel = label;
+    div.appendChild(span);
+    messages.appendChild(div);
+}
+function resetMessagesView(){
+    messages.innerHTML = '';
+    lastRenderedDateKey = null;
+    ensureFloatingDateHeader();
+    updateFloatingDateHeader();
+}
+
+// Floating date header (single sticky header that updates on scroll)
+function ensureFloatingDateHeader(){
+    if (!messages) return;
+    if (floatingDateHeader && floatingDateHeader.isConnected) return;
+    floatingDateHeader = document.createElement('div');
+    floatingDateHeader.className = 'date-floating';
+    const span = document.createElement('span');
+    floatingDateHeader.appendChild(span);
+    messages.prepend(floatingDateHeader);
+}
+function updateFloatingDateHeader(){
+    if (!messages) return;
+    ensureFloatingDateHeader();
+    const dividers = messages.querySelectorAll('.date-divider');
+    const span = floatingDateHeader.querySelector('span');
+    if (!dividers.length) {
+        floatingDateHeader.style.display = 'none';
+        return;
+    }
+    const containerTop = messages.getBoundingClientRect().top;
+    let current = dividers[0];
+    dividers.forEach(d => {
+        const rect = d.getBoundingClientRect();
+        if (rect.top <= containerTop + 8) {
+            current = d;
+        }
+    });
+    const label = current?.dataset?.dateLabel || current?.textContent?.trim();
+    if (label) {
+        span.textContent = label;
+        floatingDateHeader.style.display = '';
+    } else {
+        floatingDateHeader.style.display = 'none';
+    }
+
+    // Hide the static divider when it would visually overlap with the floating header
+    // First, clear previous state
+    dividers.forEach(d => d.classList.remove('hidden-under-floating'));
+    if (current) {
+        const currRect = current.getBoundingClientRect();
+        const floatRect = floatingDateHeader.getBoundingClientRect();
+        // If the current divider is under the floating header area, hide it
+        if (currRect.top <= (containerTop + floatRect.height + 4)) {
+            current.classList.add('hidden-under-floating');
+        }
+    }
 }
 
 // Render messages from socket (only for current context)
@@ -390,6 +469,7 @@ socket.on('messageLogs', async (msgs) => {
         try { await fetchContacts(); await fetchUsers(); } catch(_){}
     }
     messages.scrollTop = messages.scrollHeight;
+    updateFloatingDateHeader();
 });
 
 async function loadChannelHistory(channelId) {
@@ -410,16 +490,23 @@ async function loadPrivateHistory(userId) {
 }
 
 function renderHistory(list) {
-    messages.innerHTML = '';
-    list.forEach(msg => renderMessage(msg));
+    resetMessagesView();
+    // Ensure chronological order ascending by timestamp
+    list
+        .slice()
+        .sort((a,b) => new Date(a.timestamp||0) - new Date(b.timestamp||0))
+        .forEach(msg => renderMessage(msg));
     messages.scrollTop = messages.scrollHeight;
+    updateFloatingDateHeader();
 }
 
 function renderMessage(msg) {
+    const time = msg.timestamp ? new Date(msg.timestamp) : new Date();
+    // Insert a sticky date divider when day changes
+    insertDateDividerIfNeeded(time);
     const el = document.createElement('div');
     const isMe = String(msg.sender?._id || msg.sender) === String(currentUser._id);
     el.className = `message ${isMe ? 'me' : 'other'}`;
-    const time = msg.timestamp ? new Date(msg.timestamp) : new Date();
     const hh = String(time.getHours()).padStart(2, '0');
     const mm = String(time.getMinutes()).padStart(2, '0');
     let inner = `<div class="bubble">`;
@@ -431,6 +518,7 @@ function renderMessage(msg) {
     inner += `</div>`;
     el.innerHTML = inner;
     messages.appendChild(el);
+    updateFloatingDateHeader();
 }
 
 function updateChatHeader(ctx) {
@@ -469,5 +557,12 @@ if (logoutBtn) {
             await fetch('/auth/logout', { method: 'POST' });
         } catch (_) {}
         window.location.href = '/login';
+    });
+}
+
+// Update floating date on scroll
+if (messages) {
+    messages.addEventListener('scroll', () => {
+        updateFloatingDateHeader();
     });
 }
