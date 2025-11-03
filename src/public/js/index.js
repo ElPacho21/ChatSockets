@@ -436,13 +436,27 @@ function updateFloatingDateHeader(){
     }
 
     // Hide the static divider when it would visually overlap with the floating header
-    // First, clear previous state
-    dividers.forEach(d => d.classList.remove('hidden-under-floating'));
+    // and also handle edge cases (single-day/at top).
+    dividers.forEach(d => d.classList.remove('hidden-under-floating', 'always-hidden'));
+
+    // If there's only one divider, prefer showing only the floating one to avoid duplicates
+    if (dividers.length === 1) {
+        dividers[0].classList.add('always-hidden');
+        return;
+    }
+
+    // When scrolled to the very top, hide the first divider to avoid duplicate chip below the floating one
+    const nearTop = messages.scrollTop <= 2;
+    if (nearTop && dividers[0]) {
+        dividers[0].classList.add('hidden-under-floating');
+        return;
+    }
+
+    // General overlap detection
     if (current) {
         const currRect = current.getBoundingClientRect();
         const floatRect = floatingDateHeader.getBoundingClientRect();
-        // If the current divider is under the floating header area, hide it
-        if (currRect.top <= (containerTop + floatRect.height + 4)) {
+        if (currRect.top <= (containerTop + floatRect.height + 8)) {
             current.classList.add('hidden-under-floating');
         }
     }
@@ -565,4 +579,40 @@ if (messages) {
     messages.addEventListener('scroll', () => {
         updateFloatingDateHeader();
     });
+}
+
+// Scroll-to-bottom button
+let scrollBottomBtn = null;
+function ensureScrollBottomBtn(){
+    if (!messages) return;
+    if (scrollBottomBtn && scrollBottomBtn.isConnected) return;
+    scrollBottomBtn = document.createElement('button');
+    scrollBottomBtn.className = 'scroll-bottom-btn';
+    scrollBottomBtn.type = 'button';
+    scrollBottomBtn.title = 'Ir al último mensaje';
+    scrollBottomBtn.innerHTML = '▼';
+    scrollBottomBtn.addEventListener('click', () => {
+        messages.scrollTop = messages.scrollHeight;
+        updateFloatingDateHeader();
+        updateScrollBottomBtn();
+    });
+    messages.appendChild(scrollBottomBtn);
+    updateScrollBottomBtn();
+}
+function updateScrollBottomBtn(){
+    if (!scrollBottomBtn) return;
+    const distanceFromBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight;
+    if (distanceFromBottom > 120) {
+        scrollBottomBtn.style.display = '';
+    } else {
+        scrollBottomBtn.style.display = 'none';
+    }
+}
+
+// Initialize helper UI in chat page
+if (isChatPage) {
+    ensureScrollBottomBtn();
+    if (messages) {
+        messages.addEventListener('scroll', updateScrollBottomBtn);
+    }
 }
